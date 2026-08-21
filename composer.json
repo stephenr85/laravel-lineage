@@ -1,0 +1,52 @@
+{
+    "name": "rushing/laravel-lineage",
+    "description": "Record-agnostic derivation records for Laravel — the append-only mechanism half. A Lineage row says which durable producer minted which artifact, carrying a self-contained JSON snapshot that survives the producer's deletion, a best-effort live producer reference, and an optional derived-from morph. Producer vocabulary is a bare string the mechanism never validates: typed producer kinds, snapshot DTOs and HTTP projections are the opinionated seam and belong one tier up. The app owns the migration.",
+    "keywords": ["laravel", "lineage", "provenance", "derivation", "audit", "seam", "append-only"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Stephen Rushing",
+            "email": "stephenr85@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "illuminate/contracts": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/database": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "orchestra/testbench": "^9.0 || ^10.0",
+        "pestphp/pest": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rushing\\Lineage\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Rushing\\Lineage\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Rushing\\Lineage\\LineageServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "pint": "@php -d memory_limit=512M vendor/bin/pint",
+        "test": "@php vendor/bin/pest"
+    }
+}
