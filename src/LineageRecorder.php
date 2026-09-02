@@ -21,7 +21,9 @@ class LineageRecorder
      * @param  string  $producerKey  The stable, durable producer id (e.g. a Circuit id, not an ephemeral run's).
      * @param  array<string, mixed>  $snapshot  Self-contained detail; must outlive the producer.
      * @param  Model|null  $producerRef  Best-effort live reference to the producing record (may later dangle).
-     * @param  Model|null  $derivedFrom  The artifact this one derives from, when the producer is a transform.
+     * @param  Model|LineageRef|null  $derivedFrom  The artifact this one derives from, when the producer
+     *                                              is a transform. Accepts a {@see LineageRef} so a caller
+     *                                              holding only the source's id need not load it.
      */
     public function record(
         Model $produced,
@@ -29,15 +31,17 @@ class LineageRecorder
         string $producerKey,
         array $snapshot,
         ?Model $producerRef = null,
-        ?Model $derivedFrom = null,
+        Model|LineageRef|null $derivedFrom = null,
     ): Lineage {
+        $derivedFrom = LineageRef::from($derivedFrom);
+
         return Lineage::create([
             'produced_type' => $produced->getMorphClass(),
             'produced_id' => $produced->getKey(),
             'producer_kind' => $producerKind,
             'producer_key' => $producerKey,
-            'derived_from_type' => $derivedFrom?->getMorphClass(),
-            'derived_from_id' => $derivedFrom?->getKey(),
+            'derived_from_type' => $derivedFrom?->type,
+            'derived_from_id' => $derivedFrom?->id,
             'causer_id' => Auth::id(),
             'snapshot' => $snapshot,
             'producer_ref_type' => $producerRef?->getMorphClass(),

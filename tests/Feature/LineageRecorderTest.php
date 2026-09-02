@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Rushing\Lineage\LineageRecorder;
+use Rushing\Lineage\LineageRef;
 use Rushing\Lineage\Models\Lineage;
 use Rushing\Lineage\Tests\Fixtures\FixtureArtifact;
 use Rushing\Lineage\Tests\Fixtures\FixtureProducer;
@@ -106,4 +107,33 @@ it('leaves causer null when nobody is authenticated', function (): void {
     $artifact = FixtureArtifact::create(['name' => 'take-1']);
 
     expect($this->recorder->record($artifact, 'circuit', 'c-1', [])->causer_id)->toBeNull();
+});
+
+it('records a derived-from edge from a bare ref without loading the source', function (): void {
+    $derived = FixtureArtifact::create(['name' => 'derived']);
+
+    // The source is never loaded — and here never even existed, which is the point: an edge to a
+    // pruned artifact still records, where a find()-then-record would have silently dropped it.
+    $lineage = $this->recorder->record(
+        $derived,
+        'transformation',
+        't-1',
+        [],
+        derivedFrom: LineageRef::of('fragment', 'f-404'),
+    );
+
+    expect($lineage->derived_from_type)->toBe('fragment')
+        ->and($lineage->derived_from_id)->toBe('f-404');
+});
+
+it('treats a model and a ref to that model as the same edge', function (): void {
+    $source = FixtureArtifact::create(['name' => 'source']);
+    $a = FixtureArtifact::create(['name' => 'a']);
+    $b = FixtureArtifact::create(['name' => 'b']);
+
+    $fromModel = $this->recorder->record($a, 'transformation', 't-1', [], derivedFrom: $source);
+    $fromRef = $this->recorder->record($b, 'transformation', 't-2', [], derivedFrom: LineageRef::to($source));
+
+    expect($fromRef->derived_from_type)->toBe($fromModel->derived_from_type)
+        ->and($fromRef->derived_from_id)->toBe($fromModel->derived_from_id);
 });
