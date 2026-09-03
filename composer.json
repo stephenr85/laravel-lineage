@@ -13,7 +13,8 @@
         "php": "^8.3",
         "illuminate/contracts": "^11.0 || ^12.0 || ^13.0",
         "illuminate/database": "^11.0 || ^12.0 || ^13.0",
-        "illuminate/support": "^11.0 || ^12.0 || ^13.0"
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+        "rushing/laravel-permission-cascade": "*"
     },
     "require-dev": {
         "laravel/pint": "^1.0",
@@ -43,6 +44,12 @@
         },
         "sort-packages": true
     },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/stephenr85/laravel-permission-cascade.git"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {

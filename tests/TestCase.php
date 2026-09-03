@@ -6,12 +6,23 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Rushing\Lineage\LineageServiceProvider;
+use Rushing\PermissionCascade\PermissionCascadeServiceProvider;
+use Spatie\Permission\PermissionServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
     protected function getPackageProviders($app): array
     {
-        return [LineageServiceProvider::class];
+        return [
+            LineageServiceProvider::class,
+            // `Lineage` carries `#[UseCascadePolicy]` (api-surface-coherence 147), and the cascade's
+            // `PermissionNamer` is a singleton only when its provider boots — testbench does not
+            // auto-discover, and an unbooted provider leaves it auto-resolvable and fresh per call
+            // (`LineagePolicyGateTest`'s identity control). spatie's provider is the permission plane
+            // the cascade's `$user->can()` rung resolves against.
+            PermissionCascadeServiceProvider::class,
+            PermissionServiceProvider::class,
+        ];
     }
 
     protected function defineEnvironment($app): void
@@ -23,6 +34,10 @@ abstract class TestCase extends Orchestra
             'prefix' => '',
             'foreign_key_constraints' => true,
         ]);
+
+        // The cascade forces spatie into teams mode unless the host opts out; this harness has no
+        // team, and a null `team_id` fails spatie's composite key on every grant.
+        $app['config']->set('permission-cascade.manage_spatie_teams', false);
     }
 
     /**

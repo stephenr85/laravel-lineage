@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Rushing\PermissionCascade\Attributes\UseCascadePolicy;
 
 /**
  * An append-only derivation record: `$produced` was minted by the durable producer
@@ -24,7 +25,16 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  *
  * Migration ownership: this package ships the model, never the DDL, so it stays consumable by any
  * Laravel app, tenant or not. See `rushing/laravel-versioning` for the same arrangement.
+ *
+ * Authorization IS shipped, because a policy is a fact about the model and the package that owns the
+ * model owns its binding (api-surface-coherence 147; the shape beam landed for `Hook`).
+ * `#[UseCascadePolicy]` gives `Gate::getPolicyFor(Lineage::class)` a real answer — the `lineage.*`
+ * family, minted under the `lineage` alias {@see \Rushing\Lineage\LineageServiceProvider} owns
+ * (ADR-0118) — which is what a consumer's filters sub-surface, `show`, write pipeline and nav all
+ * read. Unconditional per ability, as an append-only record wants; the seeding of the family is the
+ * consuming app's, like its DDL.
  */
+#[UseCascadePolicy]
 class Lineage extends Model
 {
     use HasUuids;
